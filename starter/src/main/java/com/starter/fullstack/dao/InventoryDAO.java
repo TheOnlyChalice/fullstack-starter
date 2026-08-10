@@ -51,8 +51,9 @@ public class InventoryDAO {
    * @return Created/Updated Inventory.
    */
   public Inventory create(Inventory inventory) {
-    // TODO
-    return null;
+    // Clears any provided ID so that Mongo always generates a new one on insert.
+    inventory.setId(null); 
+    return this.mongoTemplate.insert(inventory);
   }
 
   /**
@@ -82,7 +83,11 @@ public class InventoryDAO {
    * @return Deleted Inventory.
    */
   public Optional<Inventory> delete(String id) {
-    // TODO
-    return Optional.empty();
+    // Looks up first so we can return the deleted object, since remove() doesn't return it.
+    Inventory inventory = this.mongoTemplate.findById(id, Inventory.class);
+    if (inventory != null) {
+      this.mongoTemplate.remove(inventory);
+    }
+    return Optional.ofNullable(inventory);
   }
 }
