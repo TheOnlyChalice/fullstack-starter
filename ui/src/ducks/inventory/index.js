@@ -22,9 +22,12 @@ export const findInventory = createAction(actions.INVENTORY_GET_ALL, () =>
 )
 
 export const saveInventory = createAction(actions.INVENTORY_SAVE, (inventory) =>
-  (dispatch, getState, config) => axios
-    .post(`${config.restAPIUrl}/inventory`, inventory)
-    .then((suc) => {
+  (dispatch, getState, config) => {
+    // Route to update (PUT) if this item already has an id, otherwise create (POST) a new one
+    const request = inventory.id
+      ? axios.put(`${config.restAPIUrl}/inventory/${inventory.id}`, inventory)
+      : axios.post(`${config.restAPIUrl}/inventory`, inventory)
+    return request.then((suc) => {
       const invs = []
       getState().inventory.all.forEach(inv => {
         if (inv.id !== suc.data.id) {
@@ -33,9 +36,10 @@ export const saveInventory = createAction(actions.INVENTORY_SAVE, (inventory) =>
       })
       invs.push(suc.data)
       dispatch(refreshInventory(invs))
-      // Notify the user of successful save.
+      // Notify the user of successful save, per Task 5 requirements
       dispatch(openSuccess('Inventory saved successfully.'))
     })
+  }
 )
 
 export const removeInventory = createAction(actions.INVENTORY_DELETE, (ids) =>

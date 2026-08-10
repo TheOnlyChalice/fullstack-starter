@@ -66,14 +66,23 @@ public class InventoryDAO {
     return Optional.empty();
   }
 
-  /**
+ /**
    * Update Inventory.
    * @param id Inventory id to Update.
    * @param inventory Inventory to Update.
    * @return Updated Inventory.
    */
   public Optional<Inventory> update(String id, Inventory inventory) {
-    // TODO
+    // Confirm the item actually exists before updating, and use save() (not insert())
+    // so Mongo updates the existing document instead of creating a new one.
+    Inventory existingInventory = this.mongoTemplate.findById(id, Inventory.class);
+    if (existingInventory != null) {
+      inventory.setId(id);
+      // Carry over the existing version, since a default/zero version tells Spring's
+      // optimistic locking this is a new document, causing a duplicate key error on save.
+      inventory.setVersion(existingInventory.getVersion());
+      return Optional.of(this.mongoTemplate.save(inventory));
+    }
     return Optional.empty();
   }
 

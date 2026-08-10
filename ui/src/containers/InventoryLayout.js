@@ -66,16 +66,21 @@ const InventoryLayout = (props) => {
   const [orderBy, setOrderBy] = React.useState('calories')
   const [selected, setSelected] = React.useState([])
   const [isCreateOpen, setCreateOpen] = React.useState(false)
+  const [isEditOpen, setEditOpen] = React.useState(false)
   const [isDeleteOpen, setDeleteOpen] = React.useState(false)
 
   const toggleCreate = () => {
     setCreateOpen(true)
+  }
+  const toggleEdit = () => {
+    setEditOpen(true)
   }
   const toggleDelete = () => {
     setDeleteOpen(true)
   }
   const toggleModals = (resetChecked) => {
     setCreateOpen(false)
+    setEditOpen(false)
     setDeleteOpen(false)
     if (resetChecked) {
       setSelected([])
@@ -117,6 +122,9 @@ const InventoryLayout = (props) => {
 
   const isSelected = (id) => selected.indexOf(id) !== -1
 
+  // Look up the full inventory objects for the current selection, used to pre-fill the Edit modal
+  const selectedInventory = inventory.filter(inv => selected.includes(inv.id))
+
   return (
     <Grid container>
       <Grid item xs={12}>
@@ -125,6 +133,7 @@ const InventoryLayout = (props) => {
           title='Inventory'
           toggleCreate={toggleCreate}
           toggleDelete={toggleDelete}
+          toggleEdit={toggleEdit}
         />
         <TableContainer component={Paper}>
           <Table size='small' stickyHeader>
@@ -174,6 +183,15 @@ const InventoryLayout = (props) => {
           handleDialog={toggleModals}
           handleInventory={saveInventory}
           initialValues={{}}
+          products={products}
+        />
+        <InventoryFormModal
+          title='Edit'
+          formName='inventoryEdit'
+          isDialogOpen={isEditOpen}
+          handleDialog={toggleModals}
+          handleInventory={saveInventory}
+          initialValues={selectedInventory[0]}
           products={products}
         />
         <InventoryDeleteModal

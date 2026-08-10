@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -93,5 +94,22 @@ public class InventoryControllerTest {
       .andExpect(status().isOk());
 
     Assert.assertEquals(0, this.mongoTemplate.findAll(Inventory.class).size());
+  }
+
+  /**
+   * Test update endpoint.
+   * @throws Throwable see MockMvc
+   */
+  @Test
+  public void updateInventory() throws Throwable {
+    this.inventory.setName("Updated Name");
+    this.mockMvc.perform(put("/inventory/" + this.inventory.getId())
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(this.objectMapper.writeValueAsString(this.inventory)))
+      .andExpect(status().isOk());
+
+    Assert.assertEquals(1, this.mongoTemplate.findAll(Inventory.class).size());
+    Assert.assertEquals("Updated Name", this.mongoTemplate.findAll(Inventory.class).get(0).getName());
   }
 }

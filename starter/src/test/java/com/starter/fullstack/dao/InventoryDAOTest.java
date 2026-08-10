@@ -84,4 +84,26 @@ public class InventoryDAOTest {
     Assert.assertEquals(inventory.getId(), deletedInventory.get().getId());
     Assert.assertEquals(0, this.mongoTemplate.findAll(Inventory.class).size());
   }
+
+  /**
+   * Test Update method.
+   */
+  @Test
+  public void update() {
+    Inventory inventory = new Inventory();
+    inventory.setName(NAME);
+    inventory.setProductType(PRODUCT_TYPE);
+    inventory = this.mongoTemplate.save(inventory);
+
+    Inventory updatedValues = new Inventory();
+    updatedValues.setName("Updated Name");
+    updatedValues.setProductType(PRODUCT_TYPE);
+
+    Optional<Inventory> updatedInventory = this.inventoryDAO.update(inventory.getId(), updatedValues);
+
+    Assert.assertTrue(updatedInventory.isPresent());
+    Assert.assertEquals(inventory.getId(), updatedInventory.get().getId());
+    Assert.assertEquals("Updated Name", updatedInventory.get().getName());
+    Assert.assertEquals(1, this.mongoTemplate.findAll(Inventory.class).size());
+  }
 }

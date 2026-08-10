@@ -118,7 +118,7 @@ class InventoryFormModal extends React.Component {
                   </Grid>
                   <Grid item xs={12} sm={12}>
                     <Field
-                      custom={{ variant: 'outlined', fullWidth: true, type: 'date' }}
+                      custom={{ variant: 'outlined', fullWidth: true, type: 'date', InputLabelProps: { shrink: true } }}
                       name='bestBeforeDate'
                       label='Best Before Date'
                       component={TextField}
