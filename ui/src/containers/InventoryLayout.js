@@ -2,6 +2,7 @@ import * as inventoryDuck from '../ducks/inventory'
 import * as productDuck from '../ducks/products'
 import Checkbox from '@material-ui/core/Checkbox'
 import Grid from '@material-ui/core/Grid'
+import InventoryDeleteModal from '../components/Inventory/InventoryDeleteModal'
 import InventoryFormModal from '../components/Inventory/InventoryFormModal'
 import { makeStyles } from '@material-ui/core/styles'
 import { MeasurementUnits } from '../constants/units'
@@ -51,6 +52,7 @@ const InventoryLayout = (props) => {
   const products = useSelector(state => state.products.all)
   const isFetched = useSelector(state => state.inventory.fetched && state.products.fetched)
   const saveInventory = useCallback(inventory => { dispatch(inventoryDuck.saveInventory(inventory)) }, [dispatch])
+  const removeInventory = useCallback(ids => { dispatch(inventoryDuck.removeInventory(ids)) }, [dispatch])
 
   useEffect(() => {
     if (!isFetched) {
@@ -64,12 +66,20 @@ const InventoryLayout = (props) => {
   const [orderBy, setOrderBy] = React.useState('calories')
   const [selected, setSelected] = React.useState([])
   const [isCreateOpen, setCreateOpen] = React.useState(false)
+  const [isDeleteOpen, setDeleteOpen] = React.useState(false)
 
   const toggleCreate = () => {
     setCreateOpen(true)
   }
-  const toggleModals = () => {
+  const toggleDelete = () => {
+    setDeleteOpen(true)
+  }
+  const toggleModals = (resetChecked) => {
     setCreateOpen(false)
+    setDeleteOpen(false)
+    if (resetChecked) {
+      setSelected([])
+    }
   }
 
   const handleRequestSort = (event, property) => {
@@ -110,7 +120,12 @@ const InventoryLayout = (props) => {
   return (
     <Grid container>
       <Grid item xs={12}>
-        <EnhancedTableToolbar numSelected={selected.length} title='Inventory' toggleCreate={toggleCreate}/>
+        <EnhancedTableToolbar
+          numSelected={selected.length}
+          title='Inventory'
+          toggleCreate={toggleCreate}
+          toggleDelete={toggleDelete}
+        />
         <TableContainer component={Paper}>
           <Table size='small' stickyHeader>
             <EnhancedTableHead
@@ -160,6 +175,12 @@ const InventoryLayout = (props) => {
           handleInventory={saveInventory}
           initialValues={{}}
           products={products}
+        />
+        <InventoryDeleteModal
+          isDialogOpen={isDeleteOpen}
+          handleDelete={removeInventory}
+          handleDialog={toggleModals}
+          initialValues={selected}
         />
       </Grid>
     </Grid>

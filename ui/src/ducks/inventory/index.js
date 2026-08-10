@@ -39,19 +39,20 @@ export const saveInventory = createAction(actions.INVENTORY_SAVE, (inventory) =>
 )
 
 export const removeInventory = createAction(actions.INVENTORY_DELETE, (ids) =>
-  (dispatch, getState, config) => axios
-    .delete(`${config.restAPIUrl}/inventory`, { data: ids })
-    .then((suc) => {
-      const invs = []
-      getState().inventory.all.forEach(inv => {
-        if (!ids.includes(inv.id)) {
-          invs.push(inv)
-        }
-      })
-      dispatch(refreshInventory(invs))
-      // Notify the user of successful deletion.
-      dispatch(openSuccess('Inventory deleted successfully.'))
+  // Backend's delete endpoint takes one id via path variable body
+  // so we fire one DELETE request per id and wait for all to complete.
+  (dispatch, getState, config) => Promise.all(
+    ids.map(id => axios.delete(`${config.restAPIUrl}/inventory/${id}`))
+  ).then(() => {
+    const invs = []
+    getState().inventory.all.forEach(inv => {
+      if (!ids.includes(inv.id)) {
+        invs.push(inv)
+      }
     })
+    dispatch(refreshInventory(invs))
+    dispatch(openSuccess('Inventory deleted successfully.'))
+  })
 )
 
 export const refreshInventory = createAction(actions.INVENTORY_REFRESH, (payload) =>
