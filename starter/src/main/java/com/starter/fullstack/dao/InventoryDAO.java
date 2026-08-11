@@ -4,6 +4,7 @@ import com.starter.fullstack.api.Inventory;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
@@ -51,8 +52,9 @@ public class InventoryDAO {
    * @return Created/Updated Inventory.
    */
   public Inventory create(Inventory inventory) {
-    // TODO
-    return null;
+    // Clears any provided ID so that Mongo always generates a new one on insert.
+    inventory.setId(null); 
+    return this.mongoTemplate.insert(inventory);
   }
 
   /**
@@ -72,8 +74,14 @@ public class InventoryDAO {
    * @return Updated Inventory.
    */
   public Optional<Inventory> update(String id, Inventory inventory) {
-    // TODO
-    return Optional.empty();
+    Inventory existingInventory = this.mongoTemplate.findById(id, Inventory.class);
+    if (existingInventory == null) {
+      return Optional.empty();
+    }
+    // Copy incoming fields onto the already-tracked entity (skipping id/version) so
+    // Mongo's optimistic locking sees a normal update, without manually managing version.
+    BeanUtils.copyProperties(inventory, existingInventory, "id", "version");
+    return Optional.of(this.mongoTemplate.save(existingInventory));
   }
 
   /**
@@ -82,7 +90,11 @@ public class InventoryDAO {
    * @return Deleted Inventory.
    */
   public Optional<Inventory> delete(String id) {
-    // TODO
-    return Optional.empty();
+    // Looks up first so we can return the deleted object, since remove() doesn't return it.
+    Inventory inventory = this.mongoTemplate.findById(id, Inventory.class);
+    if (inventory != null) {
+      this.mongoTemplate.remove(inventory);
+    }
+    return Optional.ofNullable(inventory);
   }
 }
