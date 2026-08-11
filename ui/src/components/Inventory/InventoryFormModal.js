@@ -12,6 +12,26 @@ import React from 'react'
 import TextField from '../Form/TextField'
 import { Field, Form, Formik } from 'formik'
 
+const validateInventory = (values) => {
+  const errors = {}
+  if (!values.name) {
+    errors.name = 'Name is required.'
+  }
+  if (!values.productType) {
+    errors.productType = 'Product Type is required.'
+  }
+  if (!values.unitOfMeasurement) {
+    errors.unitOfMeasurement = 'Unit of Measurement is required.'
+  }
+  if (values.averagePrice !== '' && values.averagePrice < 0) {
+    errors.averagePrice = 'Average Price cannot be negative.'
+  }
+  if (values.amount !== '' && values.amount < 0) {
+    errors.amount = 'Amount cannot be negative.'
+  }
+  return errors
+}
+
 class InventoryFormModal extends React.Component {
   render() {
     const {
@@ -30,6 +50,7 @@ class InventoryFormModal extends React.Component {
         onClose={() => { handleDialog(false) }}
       >
         <Formik
+          validate={validateInventory}
           initialValues={{
             name: '',
             productType: '',
@@ -146,7 +167,7 @@ class InventoryFormModal extends React.Component {
                   type='submit'
                   form={formName}
                   color='secondary'
-                  disabled={!helpers.dirty}>
+                  disabled={!helpers.dirty || !helpers.isValid}>
                   Save
                 </Button>
               </DialogActions>

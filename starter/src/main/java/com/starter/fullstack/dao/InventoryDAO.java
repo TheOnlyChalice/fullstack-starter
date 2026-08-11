@@ -4,6 +4,7 @@ import com.starter.fullstack.api.Inventory;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
@@ -66,24 +67,21 @@ public class InventoryDAO {
     return Optional.empty();
   }
 
- /**
+  /**
    * Update Inventory.
    * @param id Inventory id to Update.
    * @param inventory Inventory to Update.
    * @return Updated Inventory.
    */
   public Optional<Inventory> update(String id, Inventory inventory) {
-    // Confirm the item actually exists before updating, and use save() (not insert())
-    // so Mongo updates the existing document instead of creating a new one.
     Inventory existingInventory = this.mongoTemplate.findById(id, Inventory.class);
-    if (existingInventory != null) {
-      inventory.setId(id);
-      // Carry over the existing version, since a default/zero version tells Spring's
-      // optimistic locking this is a new document, causing a duplicate key error on save.
-      inventory.setVersion(existingInventory.getVersion());
-      return Optional.of(this.mongoTemplate.save(inventory));
+    if (existingInventory == null) {
+      return Optional.empty();
     }
-    return Optional.empty();
+    // Copy incoming fields onto the already-tracked entity (skipping id/version) so
+    // Mongo's optimistic locking sees a normal update, without manually managing version.
+    BeanUtils.copyProperties(inventory, existingInventory, "id", "version");
+    return Optional.of(this.mongoTemplate.save(existingInventory));
   }
 
   /**

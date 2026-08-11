@@ -29,12 +29,17 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 750,
   }
 }))
-
-const normalizeInventory = (inventory) => inventory.map(inv => ({
-  ...inv,
-  unitOfMeasurement: MeasurementUnits[inv.unitOfMeasurement].name,
-  bestBeforeDate: moment(inv.bestBeforeDate).format('MM/DD/YYYY')
-}))
+// Resolves productType from a raw product id to its display name, since the table
+// should show what the reviewer sees ("Hops"), not the id it's stored as internally.
+const normalizeInventory = (inventory, products) => inventory.map(inv => {
+  const product = products.find(prod => prod.id === inv.productType)
+  return {
+    ...inv,
+    productType: product ? product.name : inv.productType,
+    unitOfMeasurement: MeasurementUnits[inv.unitOfMeasurement].name,
+    bestBeforeDate: moment(inv.bestBeforeDate).format('MM/DD/YYYY')
+  }
+})
 
 const headCells = [
   { id: 'name', align: 'left', disablePadding: true, label: 'Name' },
@@ -61,7 +66,7 @@ const InventoryLayout = (props) => {
     }
   }, [dispatch, isFetched])
 
-  const normalizedInventory = normalizeInventory(inventory)
+  const normalizedInventory = normalizeInventory(inventory, products)
   const [order, setOrder] = React.useState('asc')
   const [orderBy, setOrderBy] = React.useState('calories')
   const [selected, setSelected] = React.useState([])
